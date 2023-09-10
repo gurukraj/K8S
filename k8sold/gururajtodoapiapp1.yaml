@@ -10,7 +10,7 @@ spec:
     name: http
     port: 80
     targetPort: 8098
-    nodePort: 32000
+    nodePort: 30000
   selector:
     app: gurutodoapp
     tier: frontend
@@ -23,15 +23,15 @@ metadata:
   labels:
     type: hostPath
 spec:
-  storageClassName: manual
+  storageClassName: todoapp-manual
   capacity:
     storage: 3Gi
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   persistentVolumeReclaimPolicy: Delete
   hostPath:
     type: DirectoryOrCreate
-    path: "/mnt/datatodoapp"
+    path: "/mnt/data"
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -41,8 +41,8 @@ metadata:
     app: gurutodoapp
 spec:
   accessModes:
-    - ReadWriteMany
-  storageClassName: manual  
+    - ReadWriteOnce
+  storageClassName: todoapp-manual  
   resources:
     requests:
       storage: 2Gi
@@ -68,7 +68,7 @@ spec:
         tier: frontend
     spec:
       containers:
-      - image: gurukraj/gurutodoapp:1.0
+      - image: gurukraj/gurutodoappnew:1.0
         name: gurutodoapp
         env:
         - name: MYSQL_HOST
@@ -92,9 +92,9 @@ spec:
         - containerPort: 8098
           name: gurutodoapp
         volumeMounts:
-        - name: manual
+        - name: todoapp-manual
           mountPath: /var/www/html
       volumes:
-      - name: manual
+      - name: todoapp-manual
         persistentVolumeClaim:
           claimName: todoapp-pv-claim
