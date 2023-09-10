@@ -1,0 +1,5 @@
+resources:
+- mysqldbconfig.yaml
+- mysqldbsecrets.yaml
+- mysqldbcont.yaml
+- gururajtodoapiapp.yaml

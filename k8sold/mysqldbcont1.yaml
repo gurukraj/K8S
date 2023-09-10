@@ -1,0 +1,98 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: gurutodoapp-mysql
+  labels:
+    app: gurutodoapp
+spec:
+  ports:
+    - port: 3306
+  selector:
+    app: gurutodoapp
+    tier: mysql
+  clusterIP: None
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-pv-volume
+  labels:
+     type: hostPath
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 3Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Delete
+  hostPath:
+    type: DirectoryOrCreate
+    path: "/mnt/data"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pv-claim
+  labels:
+    app: gurutodoapp
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: manual  
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gurutodoapp-mysql
+  labels:
+    app: gurutodoapp
+spec:
+  selector:
+    matchLabels:
+      app: gurutodoapp
+      tier: mysql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: gurutodoapp
+        tier: mysql
+    spec:
+      containers:
+      - image: mysql:latest
+        name: mysql
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-pass
+              key: password
+        - name: MYSQL_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: mysql-config-map
+              key: mysql-database-name
+        - name: MYSQL_USER
+          valueFrom:
+            configMapKeyRef:
+              name: mysql-config-map
+              key: mysql-user-username
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-pass
+              key: password      
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: manual
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: manual
+        persistentVolumeClaim:
+          claimName: mysql-pv-claim

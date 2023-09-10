@@ -1,0 +1,100 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: gurutodoapp
+  labels:
+    app: gurutodoapp
+spec:
+  ports:
+  - protocol: TCP
+    name: http
+    port: 80
+    targetPort: 8098
+    nodePort: 32000
+  selector:
+    app: gurutodoapp
+    tier: frontend
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: todoapp-pv-volume
+  labels:
+    type: hostPath
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 3Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Delete
+  hostPath:
+    type: DirectoryOrCreate
+    path: "/mnt/datatodoapp"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: todoapp-pv-claim
+  labels:
+    app: gurutodoapp
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: manual  
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gurutodoapp
+  labels:
+    app: gurutodoapp
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: gurutodoapp
+      tier: frontend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: gurutodoapp
+        tier: frontend
+    spec:
+      containers:
+      - image: gurukraj/gurutodoapp:1.0
+        name: gurutodoapp
+        env:
+        - name: MYSQL_HOST
+          value: gurutodoapp-mysql
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-pass
+              key: password
+        - name: MYSQL_USER
+          valueFrom:
+            configMapKeyRef:
+              name: mysql-config-map
+              key: mysql-root-user
+        - name: MYSQL_DB
+          valueFrom:
+            configMapKeyRef:
+              name: mysql-config-map
+              key: mysql-database-name
+        ports:
+        - containerPort: 8098
+          name: gurutodoapp
+        volumeMounts:
+        - name: manual
+          mountPath: /var/www/html
+      volumes:
+      - name: manual
+        persistentVolumeClaim:
+          claimName: todoapp-pv-claim
