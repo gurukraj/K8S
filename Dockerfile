@@ -21,7 +21,7 @@ WORKDIR /app
 # Copy the Spring Boot JAR from the build stage into the container
 COPY --from=build /app/target/*.jar app.jar
 # Expose the port that the Spring Boot app will listen on
-EXPOSE 8080
+EXPOSE 8098
 #EXPOSE 3306
 # Specify the command to run the Spring Boot app when the container starts
 CMD ["java", "-jar", "app.jar"]
