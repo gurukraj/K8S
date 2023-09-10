@@ -17,17 +17,17 @@ kind: PersistentVolume
 metadata:
   name: mysql-pv-volume
   labels:
-     type: hostPath
+    type: hostPath
 spec:
-  storageClassName: manual
+  storageClassName: mysql-manual
   capacity:
     storage: 3Gi
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   persistentVolumeReclaimPolicy: Delete
   hostPath:
     type: DirectoryOrCreate
-    path: "/mnt/data"
+    path: "/mnt/data1"
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -37,8 +37,8 @@ metadata:
     app: gurutodoapp
 spec:
   accessModes:
-    - ReadWriteMany
-  storageClassName: manual  
+    - ReadWriteOnce
+  storageClassName: mysql-manual  
   resources:
     requests:
       storage: 2Gi
@@ -90,9 +90,9 @@ spec:
         - containerPort: 3306
           name: mysql
         volumeMounts:
-        - name: manual
+        - name: mysql-manual
           mountPath: /var/lib/mysql
       volumes:
-      - name: manual
+      - name: mysql-manual
         persistentVolumeClaim:
           claimName: mysql-pv-claim
