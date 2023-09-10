@@ -1,0 +1,3 @@
+[submodule "K8S"]
+	path = K8S
+	url = https://github.com/gurukraj/K8S.git
