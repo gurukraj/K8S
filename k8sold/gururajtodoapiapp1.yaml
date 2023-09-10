@@ -68,7 +68,7 @@ spec:
         tier: frontend
     spec:
       containers:
-      - image: gurukraj/gurutodoappnew:2.0
+      - image: gurukraj/gurutodoappnew1:2.0
         name: gurutodoapp
         env:
         - name: MYSQL_HOST
